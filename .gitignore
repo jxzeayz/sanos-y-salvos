@@ -1,0 +1,20 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# Spring Boot
+*.log
+application-local.properties
+
+# OS
+.DS_Store
+Thumbs.db

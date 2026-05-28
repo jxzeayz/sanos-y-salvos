@@ -1,0 +1,181 @@
+version: '3.8'
+
+services:
+
+  # ─── Infraestructura ───────────────────────────────────────────────────────
+
+  postgres-auth:
+    image: postgres:16
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: db_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_auth_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+
+  postgres-mascotas:
+    image: postgres:16
+    container_name: postgres-mascotas
+    environment:
+      POSTGRES_DB: db_mascotas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg_mascotas_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+
+  postgres-geo:
+    image: postgis/postgis:16-3.4
+    container_name: postgres-geo
+    environment:
+      POSTGRES_DB: db_geo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - pg_geo_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+
+  postgres-matching:
+    image: postgres:16
+    container_name: postgres-matching
+    environment:
+      POSTGRES_DB: db_matching
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - pg_matching_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - sanos-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - sanos-net
+
+  # ─── Microservicios ────────────────────────────────────────────────────────
+
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/db_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres-auth
+    networks:
+      - sanos-net
+
+  ms-mascotas:
+    build: ./ms-mascotas
+    container_name: ms-mascotas
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-mascotas:5432/db_mascotas
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-mascotas
+      - rabbitmq
+    networks:
+      - sanos-net
+
+  ms-geolocalizacion:
+    build: ./ms-geolocalizacion
+    container_name: ms-geolocalizacion
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-geo:5432/db_geo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-geo
+      - rabbitmq
+    networks:
+      - sanos-net
+
+  ms-matching:
+    build: ./ms-matching
+    container_name: ms-matching
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-matching:5432/db_matching
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres-matching
+      - rabbitmq
+    networks:
+      - sanos-net
+
+  bff-web:
+    build: ./bff-web
+    container_name: bff-web
+    environment:
+      SERVICES_AUTH_URL: http://ms-auth:8084
+      SERVICES_MASCOTAS_URL: http://ms-mascotas:8081
+      SERVICES_GEO_URL: http://ms-geolocalizacion:8082
+      SERVICES_MATCHING_URL: http://ms-matching:8083
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ms-auth
+      - ms-mascotas
+      - ms-geolocalizacion
+      - ms-matching
+    networks:
+      - sanos-net
+
+volumes:
+  pg_auth_data:
+  pg_mascotas_data:
+  pg_geo_data:
+  pg_matching_data:
+  minio_data:
+
+networks:
+  sanos-net:
+    driver: bridge
