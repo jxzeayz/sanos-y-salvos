@@ -1,0 +1,83 @@
+REPOSITORIOS DEL PROYECTO — SANOS Y SALVOS
+DSY1106 Desarrollo Fullstack III | DuocUC
+Estudiantes: Julio Soto | Armando Calderón
+Docente: Jorge Canales Soto
+Fecha: Mayo 2026
+================================================================
+
+REPOSITORIO PRINCIPAL
+---------------------
+URL: https://github.com/jxzeayz/sanos-y-salvos
+Descripción: Repositorio monorepo que contiene todos los componentes del
+             sistema Sanos y Salvos: frontend React, BFF y 4 microservicios
+             Spring Boot, orquestados con Docker Compose.
+
+Rama principal : main
+Rama de trabajo: develop
+Ramas de feature:
+  - feature/ms-auth
+  - feature/ms-mascotas
+  - feature/ms-geolocalizacion
+  - feature/ms-matching
+  - feature/bff-web
+  - feature/frontend
+
+================================================================
+
+COMPONENTES EN EL REPOSITORIO
+------------------------------
+
+1. Frontend (React + Vite)
+   Carpeta : /frontend
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/frontend
+   Descripción: Aplicación web React 18 con componentes NPM (MUI, Leaflet,
+                Axios, React Router). Incluye formularios de autenticación,
+                gestión de mascotas, mapa de reportes y detección de
+                coincidencias. Dockerizado con nginx en puerto 3000.
+
+2. BFF-Web (Backend For Frontend)
+   Carpeta : /bff-web
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/bff-web
+   Descripción: Punto de entrada único del frontend hacia los microservicios.
+                Spring Boot 3.2.5 + WebFlux. Valida tokens JWT y actúa como
+                proxy reactivo hacia ms-auth y ms-mascotas. Puerto 8080.
+
+3. MS-Auth (Microservicio de Autenticación)
+   Carpeta : /ms-auth
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/ms-auth
+   Descripción: Microservicio de registro y autenticación de usuarios.
+                Spring Boot 3.2.5 + Spring Security + JWT (HMAC-SHA256) +
+                BCrypt. Roles: DUEÑO, CIUDADANO, VETERINARIO, ADMIN.
+                Base de datos PostgreSQL independiente (db_auth). Puerto 8084.
+
+4. MS-Mascotas (Microservicio de Mascotas)
+   Carpeta : /ms-mascotas
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/ms-mascotas
+   Descripción: CRUD de mascotas perdidas y encontradas. Publica eventos
+                asíncronos en RabbitMQ al registrar una mascota. Aplica
+                Circuit Breaker con Resilience4j. Puerto 8081.
+
+5. MS-Geolocalizacion (Microservicio de Geolocalización)
+   Carpeta : /ms-geolocalizacion
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/ms-geolocalizacion
+   Descripción: Almacena reportes geoespaciales usando PostGIS. Permite
+                búsquedas por radio (ST_DWithin) y cálculo de zonas con
+                mayor incidencia de reportes. Puerto 8082.
+
+6. MS-Matching (Microservicio de Motor de Coincidencias)
+   Carpeta : /ms-matching
+   URL     : https://github.com/jxzeayz/sanos-y-salvos/tree/main/ms-matching
+   Descripción: Motor de detección de coincidencias entre mascotas perdidas
+                y encontradas. Consume eventos RabbitMQ de ms-mascotas.
+                Algoritmo de scoring ponderado (especie, raza, color, tamaño,
+                ubicación, fecha). Patrón Strategy. Puerto 8083.
+
+================================================================
+
+DOCUMENTACIÓN
+-------------
+- docs/analisis-patrones-arquetipos.md — Análisis de patrones de diseño
+- docs/plan-branching.md              — Estrategia de branching Git Flow
+- README.md                           — Guía de inicio rápido del proyecto
+
+================================================================
