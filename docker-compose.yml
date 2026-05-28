@@ -17,6 +17,11 @@ services:
       - pg_auth_data:/var/lib/postgresql/data
     networks:
       - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres-mascotas:
     image: postgres:16
@@ -31,6 +36,11 @@ services:
       - pg_mascotas_data:/var/lib/postgresql/data
     networks:
       - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_mascotas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres-geo:
     image: postgis/postgis:16-3.4
@@ -45,6 +55,11 @@ services:
       - pg_geo_data:/var/lib/postgresql/data
     networks:
       - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_geo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres-matching:
     image: postgres:16
@@ -59,6 +74,11 @@ services:
       - pg_matching_data:/var/lib/postgresql/data
     networks:
       - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_matching"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -71,6 +91,11 @@ services:
       - "15672:15672"
     networks:
       - sanos-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   minio:
     image: minio/minio:latest
@@ -99,9 +124,11 @@ services:
     ports:
       - "8084:8084"
     depends_on:
-      - postgres-auth
+      postgres-auth:
+        condition: service_healthy
     networks:
       - sanos-net
+    restart: on-failure
 
   ms-mascotas:
     build: ./ms-mascotas
@@ -114,10 +141,13 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - postgres-mascotas
-      - rabbitmq
+      postgres-mascotas:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - sanos-net
+    restart: on-failure
 
   ms-geolocalizacion:
     build: ./ms-geolocalizacion
@@ -130,10 +160,13 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - postgres-geo
-      - rabbitmq
+      postgres-geo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - sanos-net
+    restart: on-failure
 
   ms-matching:
     build: ./ms-matching
@@ -146,10 +179,13 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - postgres-matching
-      - rabbitmq
+      postgres-matching:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - sanos-net
+    restart: on-failure
 
   bff-web:
     build: ./bff-web
@@ -168,6 +204,18 @@ services:
       - ms-matching
     networks:
       - sanos-net
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - bff-web
+    networks:
+      - sanos-net
+    restart: on-failure
 
 volumes:
   pg_auth_data:
