@@ -3,6 +3,7 @@ package cl.duocuc.sanosysalvos.geolocalizacion.controller;
 import cl.duocuc.sanosysalvos.geolocalizacion.dto.ZonaReporteRequest;
 import cl.duocuc.sanosysalvos.geolocalizacion.model.ZonaReporte;
 import cl.duocuc.sanosysalvos.geolocalizacion.service.GeoService;
+import cl.duocuc.sanosysalvos.geolocalizacion.dto.ZonaReporteMapaResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,8 @@ public class GeoController {
     }
 
     @GetMapping("/reportes")
-    public ResponseEntity<List<ZonaReporte>> listar() {
-        return ResponseEntity.ok(geoService.listarTodas());
+    public ResponseEntity<List<ZonaReporteMapaResponse>> listar() {
+        return ResponseEntity.ok(geoService.listarParaMapa());
     }
 
     @GetMapping("/reportes/radio")

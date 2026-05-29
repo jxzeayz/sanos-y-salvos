@@ -23,11 +23,15 @@ public class MascotaEventPublisher {
     public void publishMascotaRegistrada(Mascota mascota) {
         Map<String, Object> evento = new HashMap<>();
         evento.put("mascotaId", mascota.getId());
+        evento.put("usuarioId", mascota.getUsuarioId());
+        evento.put("nombre", mascota.getNombre());
         evento.put("especie", mascota.getEspecie());
         evento.put("raza", mascota.getRaza());
         evento.put("color", mascota.getColor());
         evento.put("tamano", mascota.getTamano());
         evento.put("estado", mascota.getEstado().name());
+        evento.put("tipoReporte", mascota.getEstado().name());
+        evento.put("descripcion", mascota.getDescripcion());
         evento.put("latitud", mascota.getLatitud());
         evento.put("longitud", mascota.getLongitud());
         evento.put("fechaReporte", mascota.getFechaReporte().toString());
