@@ -22,8 +22,14 @@ public class AuthProxyController {
         return authClient.post()
                 .uri("/api/auth/register")
                 .bodyValue(body)
-                .retrieve()
-                .toEntity(Map.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(Map.class)
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     @PostMapping("/login")
@@ -31,7 +37,13 @@ public class AuthProxyController {
         return authClient.post()
                 .uri("/api/auth/login")
                 .bodyValue(body)
-                .retrieve()
-                .toEntity(Map.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(Map.class)
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 }
