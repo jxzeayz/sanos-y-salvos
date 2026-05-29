@@ -32,54 +32,95 @@ public class MascotaProxyController {
     public Mono<ResponseEntity<Map>> registrar(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody Map<String, Object> body) {
+
         if (!tokenValido(authHeader)) {
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
         }
+
         return mascotasClient.post()
                 .uri("/api/mascotas")
                 .header("Authorization", authHeader)
                 .bodyValue(body)
-                .retrieve()
-                .toEntity(Map.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(Map.class)
+                                .defaultIfEmpty(Map.of())
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     @GetMapping
     public Mono<ResponseEntity<List>> listar(
             @RequestParam(required = false) String estado) {
+
         String uri = estado != null ? "/api/mascotas?estado=" + estado : "/api/mascotas";
+
         return mascotasClient.get()
                 .uri(uri)
-                .retrieve()
-                .toEntity(List.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(List.class)
+                                .defaultIfEmpty(List.of())
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map>> obtener(@PathVariable Long id) {
         return mascotasClient.get()
                 .uri("/api/mascotas/{id}", id)
-                .retrieve()
-                .toEntity(Map.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(Map.class)
+                                .defaultIfEmpty(Map.of())
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     @GetMapping("/{id}/coincidencias")
     public Mono<ResponseEntity<List>> coincidencias(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id) {
+
         if (!tokenValido(authHeader)) {
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
         }
+
         return matchingClient.get()
                 .uri("/api/matching/coincidencias/mascota/{id}", id)
-                .retrieve()
-                .toEntity(List.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(List.class)
+                                .defaultIfEmpty(List.of())
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     @GetMapping("/mapa")
     public Mono<ResponseEntity<List>> mapa() {
         return geoClient.get()
                 .uri("/api/geo/reportes")
-                .retrieve()
-                .toEntity(List.class);
+                .exchangeToMono(response ->
+                        response.bodyToMono(List.class)
+                                .defaultIfEmpty(List.of())
+                                .map(responseBody ->
+                                        ResponseEntity
+                                                .status(response.statusCode())
+                                                .body(responseBody)
+                                )
+                );
     }
 
     private boolean tokenValido(String authHeader) {
