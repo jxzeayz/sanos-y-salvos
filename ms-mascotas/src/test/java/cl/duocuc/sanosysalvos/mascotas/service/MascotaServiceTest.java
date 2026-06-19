@@ -3,7 +3,9 @@ package cl.duocuc.sanosysalvos.mascotas.service;
 import cl.duocuc.sanosysalvos.mascotas.dto.MascotaRequest;
 import cl.duocuc.sanosysalvos.mascotas.event.MascotaEventPublisher;
 import cl.duocuc.sanosysalvos.mascotas.model.EstadoMascota;
+import cl.duocuc.sanosysalvos.mascotas.model.EspecieMascota;
 import cl.duocuc.sanosysalvos.mascotas.model.Mascota;
+import cl.duocuc.sanosysalvos.mascotas.model.TamanoMascota;
 import cl.duocuc.sanosysalvos.mascotas.repository.MascotaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +36,10 @@ class MascotaServiceTest {
     void setUp() {
         request = new MascotaRequest();
         request.setNombre("Firulais");
-        request.setEspecie("PERRO");
+        request.setEspecie(EspecieMascota.PERRO);
         request.setRaza("Labrador");
         request.setColor("dorado");
-        request.setTamano("GRANDE");
+        request.setTamano(TamanoMascota.GRANDE);
         request.setEstado(EstadoMascota.PERDIDA);
         request.setLatitud(-33.4569);
         request.setLongitud(-70.6483);
@@ -46,10 +48,10 @@ class MascotaServiceTest {
         mascota = Mascota.builder()
                 .id(1L)
                 .nombre("Firulais")
-                .especie("PERRO")
+                .especie(EspecieMascota.PERRO)
                 .raza("Labrador")
                 .color("dorado")
-                .tamano("GRANDE")
+                .tamano(TamanoMascota.GRANDE)
                 .estado(EstadoMascota.PERDIDA)
                 .latitud(-33.4569)
                 .longitud(-70.6483)
@@ -64,15 +66,15 @@ class MascotaServiceTest {
         Mascota resultado = mascotaService.registrar(request);
 
         assertThat(resultado.getNombre()).isEqualTo("Firulais");
-        assertThat(resultado.getEspecie()).isEqualTo("PERRO");
+        assertThat(resultado.getEspecie()).isEqualTo(EspecieMascota.PERRO);
         assertThat(resultado.getEstado()).isEqualTo(EstadoMascota.PERDIDA);
         verify(mascotaRepository).save(any(Mascota.class));
     }
 
     @Test
     void listarTodas_retornaTodasLasMascotas() {
-        Mascota segunda = Mascota.builder().id(2L).nombre("Luna").especie("GATO")
-                .color("negro").estado(EstadoMascota.ENCONTRADA).usuarioId(2L).build();
+        Mascota segunda = Mascota.builder().id(2L).nombre("Luna").especie(EspecieMascota.GATO)
+                .color("negro").tamano(TamanoMascota.MEDIANO).estado(EstadoMascota.ENCONTRADA).usuarioId(2L).build();
         when(mascotaRepository.findAll()).thenReturn(List.of(mascota, segunda));
 
         List<Mascota> resultado = mascotaService.listarTodas();
@@ -118,7 +120,7 @@ class MascotaServiceTest {
                 .estado(EstadoMascota.REUNIFICADA).usuarioId(1L).build();
         when(mascotaRepository.save(any(Mascota.class))).thenReturn(reunificada);
 
-        Mascota resultado = mascotaService.actualizarEstado(1L, EstadoMascota.REUNIFICADA);
+        Mascota resultado = mascotaService.actualizarEstado(1L, EstadoMascota.REUNIFICADA, null);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoMascota.REUNIFICADA);
         verify(mascotaRepository).save(any(Mascota.class));

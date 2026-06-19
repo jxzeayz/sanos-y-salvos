@@ -21,23 +21,22 @@ public class MascotaEventConsumer {
     public void onMascotaEvent(Map<String, Object> evento) {
         log.info("Evento recibido para matching: {}", evento);
 
-        try {
-            MascotaSnapshot snapshot = MascotaSnapshot.builder()
-                    .mascotaId(toLong(evento.get("mascotaId")))
-                    .especie((String) evento.get("especie"))
-                    .raza((String) evento.get("raza"))
-                    .color((String) evento.get("color"))
-                    .tamano((String) evento.get("tamano"))
-                    .estado((String) evento.get("estado"))
-                    .latitud(toDouble(evento.get("latitud")))
-                    .longitud(toDouble(evento.get("longitud")))
-                    .fechaReporte(LocalDateTime.parse((String) evento.get("fechaReporte")))
-                    .build();
+        MascotaSnapshot snapshot = MascotaSnapshot.builder()
+                .mascotaId(toLong(evento.get("mascotaId")))
+                .usuarioId(toLong(evento.get("usuarioId")))
+                .nombre((String) evento.get("nombre"))
+                .especie((String) evento.get("especie"))
+                .raza((String) evento.get("raza"))
+                .color((String) evento.get("color"))
+                .tamano((String) evento.get("tamano"))
+                .descripcion((String) evento.get("descripcion"))
+                .estado((String) evento.get("estado"))
+                .latitud(toDouble(evento.get("latitud")))
+                .longitud(toDouble(evento.get("longitud")))
+                .fechaReporte(LocalDateTime.parse((String) evento.get("fechaReporte")))
+                .build();
 
-            matchingService.procesarNuevaMascota(snapshot);
-        } catch (Exception e) {
-            log.error("Error procesando evento de mascota: {}", e.getMessage());
-        }
+        matchingService.procesarNuevaMascota(snapshot);
     }
 
     private Long toLong(Object val) {

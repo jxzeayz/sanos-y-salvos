@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # ─── Infraestructura ───────────────────────────────────────────────────────
@@ -8,17 +6,17 @@ services:
     image: postgres:16
     container_name: postgres-auth
     environment:
-      POSTGRES_DB: db_auth
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
+      POSTGRES_DB: ${POSTGRES_DB_AUTH:-db_auth}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
     volumes:
       - pg_auth_data:/var/lib/postgresql/data
     networks:
       - sanos-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_auth"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_AUTH:-db_auth}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,17 +25,17 @@ services:
     image: postgres:16
     container_name: postgres-mascotas
     environment:
-      POSTGRES_DB: db_mascotas
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
+      POSTGRES_DB: ${POSTGRES_DB_MASCOTAS:-db_mascotas}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
     volumes:
       - pg_mascotas_data:/var/lib/postgresql/data
     networks:
       - sanos-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_mascotas"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_MASCOTAS:-db_mascotas}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,17 +44,17 @@ services:
     image: postgis/postgis:16-3.4
     container_name: postgres-geo
     environment:
-      POSTGRES_DB: db_geo
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5435:5432"
+      POSTGRES_DB: ${POSTGRES_DB_GEO:-db_geo}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
     volumes:
       - pg_geo_data:/var/lib/postgresql/data
     networks:
       - sanos-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_geo"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_GEO:-db_geo}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,17 +63,74 @@ services:
     image: postgres:16
     container_name: postgres-matching
     environment:
-      POSTGRES_DB: db_matching
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5436:5432"
+      POSTGRES_DB: ${POSTGRES_DB_MATCHING:-db_matching}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
     volumes:
       - pg_matching_data:/var/lib/postgresql/data
     networks:
       - sanos-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_matching"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_MATCHING:-db_matching}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-notificaciones:
+    image: postgres:16
+    container_name: postgres-notificaciones
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_NOTIFICACIONES:-db_notificaciones}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
+    volumes:
+      - pg_notificaciones_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_NOTIFICACIONES:-db_notificaciones}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-archivos:
+    image: postgres:16
+    container_name: postgres-archivos
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_ARCHIVOS:-db_archivos}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
+    volumes:
+      - pg_archivos_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_ARCHIVOS:-db_archivos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-auditoria:
+    image: postgres:16
+    container_name: postgres-auditoria
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_AUDITORIA:-db_auditoria}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    expose:
+      - "5432"
+    volumes:
+      - pg_auditoria_data:/var/lib/postgresql/data
+    networks:
+      - sanos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB_AUDITORIA:-db_auditoria}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -84,11 +139,11 @@ services:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    expose:
+      - "5672"
+      - "15672"
     networks:
       - sanos-net
     healthcheck:
@@ -102,13 +157,33 @@ services:
     container_name: minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS:-minioadmin}
+    expose:
+      - "9000"
+      - "9001"
     volumes:
       - minio_data:/data
+    networks:
+      - sanos-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 ${MINIO_USER:-minioadmin} ${MINIO_PASS:-minioadmin};
+        mc mb local/archivos --ignore-existing;
+        echo 'Bucket archivos listo';
+      "
     networks:
       - sanos-net
 
@@ -118,11 +193,13 @@ services:
     build: ./ms-auth
     container_name: ms-auth
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/db_auth
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-    ports:
-      - "8084:8084"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_DB_AUTH:-db_auth}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+    expose:
+      - "8084"
     depends_on:
       postgres-auth:
         condition: service_healthy
@@ -134,12 +211,15 @@ services:
     build: ./ms-mascotas
     container_name: ms-mascotas
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-mascotas:5432/db_mascotas
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-mascotas:5432/${POSTGRES_DB_MASCOTAS:-db_mascotas}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_RABBITMQ_HOST: rabbitmq
-    ports:
-      - "8081:8081"
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-sanos-salvos.events}
+    expose:
+      - "8081"
     depends_on:
       postgres-mascotas:
         condition: service_healthy
@@ -153,12 +233,15 @@ services:
     build: ./ms-geolocalizacion
     container_name: ms-geolocalizacion
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-geo:5432/db_geo
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-geo:5432/${POSTGRES_DB_GEO:-db_geo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_RABBITMQ_HOST: rabbitmq
-    ports:
-      - "8082:8082"
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-sanos-salvos.events}
+    expose:
+      - "8082"
     depends_on:
       postgres-geo:
         condition: service_healthy
@@ -172,14 +255,87 @@ services:
     build: ./ms-matching
     container_name: ms-matching
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-matching:5432/db_matching
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-matching:5432/${POSTGRES_DB_MATCHING:-db_matching}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_RABBITMQ_HOST: rabbitmq
-    ports:
-      - "8083:8083"
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-sanos-salvos.events}
+    expose:
+      - "8083"
     depends_on:
       postgres-matching:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sanos-net
+    restart: on-failure
+
+  ms-notificaciones:
+    build: ./ms-notificaciones
+    container_name: ms-notificaciones
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notificaciones:5432/${POSTGRES_DB_NOTIFICACIONES:-db_notificaciones}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      SPRING_RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-sanos-salvos.events}
+      SPRING_MAIL_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USER:-notificaciones@sanosysalvos.com}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASS}
+    expose:
+      - "8085"
+    depends_on:
+      postgres-notificaciones:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sanos-net
+    restart: on-failure
+
+  ms-archivos:
+    build: ./ms-archivos
+    container_name: ms-archivos
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-archivos:5432/${POSTGRES_DB_ARCHIVOS:-db_archivos}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_MINIO_ENDPOINT: http://minio:9000
+      SPRING_MINIO_ACCESSKEY: ${MINIO_USER:-minioadmin}
+      SPRING_MINIO_SECRETKEY: ${MINIO_PASS:-minioadmin}
+      SPRING_MINIO_BUCKET: archivos
+    expose:
+      - "8086"
+    depends_on:
+      postgres-archivos:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - sanos-net
+    restart: on-failure
+
+  ms-auditoria:
+    build: ./ms-auditoria
+    container_name: ms-auditoria
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auditoria:5432/${POSTGRES_DB_AUDITORIA:-db_auditoria}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      SPRING_RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-sanos-salvos.events}
+    expose:
+      - "8087"
+    depends_on:
+      postgres-auditoria:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -195,6 +351,11 @@ services:
       SERVICES_MASCOTAS_URL: http://ms-mascotas:8081
       SERVICES_GEO_URL: http://ms-geolocalizacion:8082
       SERVICES_MATCHING_URL: http://ms-matching:8083
+      SERVICES_NOTIFICACIONES_URL: http://ms-notificaciones:8085
+      SERVICES_ARCHIVOS_URL: http://ms-archivos:8086
+      SERVICES_AUDITORIA_URL: http://ms-auditoria:8087
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,https://localhost}
     ports:
       - "8080:8080"
     depends_on:
@@ -202,6 +363,9 @@ services:
       - ms-mascotas
       - ms-geolocalizacion
       - ms-matching
+      - ms-notificaciones
+      - ms-archivos
+      - ms-auditoria
     networks:
       - sanos-net
     restart: on-failure
@@ -210,7 +374,8 @@ services:
     build: ./frontend
     container_name: frontend
     ports:
-      - "3000:3000"
+      - "80:80"
+      - "443:443"
     depends_on:
       - bff-web
     networks:
@@ -222,6 +387,9 @@ volumes:
   pg_mascotas_data:
   pg_geo_data:
   pg_matching_data:
+  pg_notificaciones_data:
+  pg_archivos_data:
+  pg_auditoria_data:
   minio_data:
 
 networks:

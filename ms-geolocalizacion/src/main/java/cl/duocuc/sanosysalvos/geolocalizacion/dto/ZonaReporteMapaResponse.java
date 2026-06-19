@@ -15,7 +15,6 @@ public class ZonaReporteMapaResponse {
 
     private Long id;
     private Long mascotaId;
-    private Long usuarioId;
 
     private Double latitud;
     private Double longitud;

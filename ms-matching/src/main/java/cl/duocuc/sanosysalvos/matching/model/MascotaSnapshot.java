@@ -22,10 +22,13 @@ public class MascotaSnapshot {
     @Id
     private Long mascotaId;
 
+    private Long usuarioId;
+    private String nombre;
     private String especie;
     private String raza;
     private String color;
     private String tamano;
+    private String descripcion;
     private String estado;
     private Double latitud;
     private Double longitud;

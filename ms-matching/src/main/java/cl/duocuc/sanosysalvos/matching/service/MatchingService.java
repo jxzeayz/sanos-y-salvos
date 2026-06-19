@@ -5,6 +5,7 @@ import cl.duocuc.sanosysalvos.matching.model.EstadoCoincidencia;
 import cl.duocuc.sanosysalvos.matching.model.MascotaSnapshot;
 import cl.duocuc.sanosysalvos.matching.repository.CoincidenciaRepository;
 import cl.duocuc.sanosysalvos.matching.repository.MascotaSnapshotRepository;
+import cl.duocuc.sanosysalvos.matching.event.MascotaEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class MatchingService {
     private final MascotaSnapshotRepository snapshotRepository;
     private final CoincidenciaRepository coincidenciaRepository;
     private final MatchingAlgorithm algorithm;
+    private final MascotaEventPublisher eventPublisher;
 
     @Value("${matching.score-minimo:0.60}")
     private double scoreMinimo;
@@ -29,6 +31,16 @@ public class MatchingService {
     @Transactional
     public List<Coincidencia> procesarNuevaMascota(MascotaSnapshot nueva) {
         snapshotRepository.save(nueva);
+
+        if ("REUNIFICADA".equals(nueva.getEstado())) {
+            log.info("Mascota REUNIFICADA, no se procesa matching: {}", nueva.getMascotaId());
+            return List.of();
+        }
+
+        if (!"PERDIDA".equals(nueva.getEstado()) && !"ENCONTRADA".equals(nueva.getEstado())) {
+            log.info("Estado '{}' no apto para matching: {}", nueva.getEstado(), nueva.getMascotaId());
+            return List.of();
+        }
 
         String estadoOpuesto = nueva.getEstado().equals("PERDIDA") ? "ENCONTRADA" : "PERDIDA";
         List<MascotaSnapshot> candidatas = snapshotRepository
@@ -41,7 +53,9 @@ public class MatchingService {
             MascotaSnapshot encontrada = nueva.getEstado().equals("PERDIDA") ? candidata : nueva;
 
             if (coincidenciaRepository.existsByMascotaPerdidaIdAndMascotaEncontradaId(
-                    perdida.getMascotaId(), encontrada.getMascotaId())) {
+                    perdida.getMascotaId(), encontrada.getMascotaId())
+                || coincidenciaRepository.existsByMascotaEncontradaIdAndMascotaPerdidaId(
+                    encontrada.getMascotaId(), perdida.getMascotaId())) {
                 continue;
             }
 
@@ -52,10 +66,14 @@ public class MatchingService {
                 Coincidencia c = Coincidencia.builder()
                         .mascotaPerdidaId(perdida.getMascotaId())
                         .mascotaEncontradaId(encontrada.getMascotaId())
+                        .usuarioIdPerdida(perdida.getUsuarioId())
+                        .usuarioIdEncontrada(encontrada.getUsuarioId())
                         .scoreMatch(score)
                         .estado(EstadoCoincidencia.PENDIENTE)
                         .build();
-                coincidencias.add(coincidenciaRepository.save(c));
+                Coincidencia saved = coincidenciaRepository.save(c);
+                coincidencias.add(saved);
+                eventPublisher.publishCoincidenciaHallada(saved);
             }
         }
 
@@ -68,7 +86,7 @@ public class MatchingService {
     }
 
     public List<Coincidencia> listarPorMascota(Long mascotaId) {
-        return coincidenciaRepository.findByMascotaPerdidaId(mascotaId);
+        return coincidenciaRepository.findByMascotaPerdidaIdOrMascotaEncontradaId(mascotaId, mascotaId);
     }
 
     @Transactional

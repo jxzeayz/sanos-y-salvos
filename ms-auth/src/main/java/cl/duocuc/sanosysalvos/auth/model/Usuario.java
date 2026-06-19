@@ -38,6 +38,11 @@ public class Usuario {
     @Column(nullable = false)
     private boolean activo = true;
 
+    @Column(nullable = false)
+    private boolean eliminado = false;
+
+    private LocalDateTime fechaEliminacion;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

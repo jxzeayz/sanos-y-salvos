@@ -28,6 +28,14 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
+  const updateUsuario = useCallback((datosActualizados) => {
+    setUsuario((prev) => {
+      const actualizado = { ...prev, ...datosActualizados }
+      localStorage.setItem('usuario', JSON.stringify(actualizado))
+      return actualizado
+    })
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem('token')
     localStorage.removeItem('usuario')
@@ -36,7 +44,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ token, usuario, login, register, logout }}>
+    <AuthContext.Provider value={{ token, usuario, login, register, updateUsuario, logout }}>
       {children}
     </AuthContext.Provider>
   )

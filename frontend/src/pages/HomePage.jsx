@@ -3,20 +3,23 @@ import PetsIcon from '@mui/icons-material/Pets'
 import MapIcon from '@mui/icons-material/Map'
 import SearchIcon from '@mui/icons-material/Search'
 import { Link } from 'react-router-dom'
-
-const cards = [
-  { icon: <PetsIcon fontSize="large" color="primary" />, title: 'Reportar mascota',
-    desc: 'Registra una mascota perdida o encontrada con sus características y ubicación.',
-    to: '/mascotas/nueva', label: 'Registrar' },
-  { icon: <MapIcon fontSize="large" color="primary" />, title: 'Ver mapa',
-    desc: 'Visualiza los reportes en el mapa y detecta zonas con mayor incidencia.',
-    to: '/mapa', label: 'Abrir mapa' },
-  { icon: <SearchIcon fontSize="large" color="primary" />, title: 'Coincidencias',
-    desc: 'El sistema detecta automáticamente posibles coincidencias entre mascotas.',
-    to: '/coincidencias', label: 'Ver coincidencias' },
-]
+import { useAuth } from '../hooks/useAuth.js'
 
 export default function HomePage() {
+  const { token } = useAuth()
+
+  const cards = [
+    { icon: <PetsIcon fontSize="large" color="primary" />, title: 'Reportar mascota',
+      desc: 'Registra una mascota perdida o encontrada con sus características y ubicación.',
+      to: '/mascotas/nueva', label: 'Registrar' },
+    { icon: <MapIcon fontSize="large" color="primary" />, title: 'Ver mapa',
+      desc: 'Visualiza los reportes en el mapa y detecta zonas con mayor incidencia.',
+      to: '/mapa', label: 'Abrir mapa' },
+    { icon: <SearchIcon fontSize="large" color="primary" />, title: 'Coincidencias',
+      desc: 'El sistema detecta automáticamente posibles coincidencias entre mascotas.',
+      to: '/coincidencias', label: 'Ver coincidencias' },
+  ]
+
   return (
     <Box>
       <Box
@@ -33,11 +36,17 @@ export default function HomePage() {
           Plataforma centralizada para la localización y recuperación de mascotas perdidas
         </Typography>
         <Box display="flex" gap={2} justifyContent="center" flexWrap="wrap">
-          <Button variant="contained" color="secondary" size="large" component={Link} to="/register">
-            Crear cuenta
-          </Button>
+          {token ? (
+            <Button variant="contained" color="secondary" size="large" component={Link} to="/mascotas/nueva">
+              Reportar mascota
+            </Button>
+          ) : (
+            <Button variant="contained" color="secondary" size="large" component={Link} to="/register">
+              Crear cuenta
+            </Button>
+          )}
           <Button variant="outlined" color="inherit" size="large" component={Link} to="/mapa">
-            Ver mapa público
+            Ver mapa
           </Button>
         </Box>
       </Box>

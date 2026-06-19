@@ -20,6 +20,15 @@ public class WebClientConfig {
     @Value("${services.matching.url}")
     private String matchingUrl;
 
+    @Value("${services.notificaciones.url}")
+    private String notificacionesUrl;
+
+    @Value("${services.archivos.url}")
+    private String archivosUrl;
+
+    @Value("${services.auditoria.url}")
+    private String auditoriaUrl;
+
     @Bean("authClient")
     public WebClient authClient() {
         return WebClient.builder().baseUrl(authUrl).build();
@@ -38,5 +47,20 @@ public class WebClientConfig {
     @Bean("matchingClient")
     public WebClient matchingClient() {
         return WebClient.builder().baseUrl(matchingUrl).build();
+    }
+
+    @Bean("notificacionesClient")
+    public WebClient notificacionesClient() {
+        return WebClient.builder().baseUrl(notificacionesUrl).build();
+    }
+
+    @Bean("archivosClient")
+    public WebClient archivosClient() {
+        return WebClient.builder().baseUrl(archivosUrl).build();
+    }
+
+    @Bean("auditoriaClient")
+    public WebClient auditoriaClient() {
+        return WebClient.builder().baseUrl(auditoriaUrl).build();
     }
 }

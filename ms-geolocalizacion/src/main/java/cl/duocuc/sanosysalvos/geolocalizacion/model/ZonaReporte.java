@@ -1,5 +1,6 @@
 package cl.duocuc.sanosysalvos.geolocalizacion.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,7 @@ public class ZonaReporte {
     @Column(nullable = false)
     private Long usuarioId;
 
+    @JsonIgnore
     @Column(columnDefinition = "geometry(Point,4326)")
     private Point ubicacion;
 

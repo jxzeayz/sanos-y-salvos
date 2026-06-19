@@ -39,11 +39,27 @@ public class MascotaController {
         return ResponseEntity.ok(mascotaService.obtenerPorId(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Mascota> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody MascotaRequest request) {
+        return ResponseEntity.ok(mascotaService.actualizar(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @RequestParam Long usuarioId) {
+        mascotaService.eliminar(id, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/estado")
     public ResponseEntity<Mascota> actualizarEstado(
             @PathVariable Long id,
-            @RequestParam EstadoMascota estado) {
-        return ResponseEntity.ok(mascotaService.actualizarEstado(id, estado));
+            @RequestParam EstadoMascota estado,
+            @RequestParam(required = false) Long usuarioId) {
+        return ResponseEntity.ok(mascotaService.actualizarEstado(id, estado, usuarioId));
     }
 
     @GetMapping("/usuario/{usuarioId}")

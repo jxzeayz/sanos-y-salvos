@@ -14,8 +14,8 @@ public interface ZonaReporteRepository extends JpaRepository<ZonaReporte, Long> 
     @Query(value = """
         SELECT * FROM zonas_reporte
         WHERE ST_DWithin(
-            ubicacion::geography,
-            ST_SetSRID(ST_MakePoint(:longitud, :latitud), 4326)::geography,
+            CAST(ubicacion AS geography),
+            CAST(ST_SetSRID(ST_MakePoint(:longitud, :latitud), 4326) AS geography),
             :radioMetros
         )
         """, nativeQuery = true)

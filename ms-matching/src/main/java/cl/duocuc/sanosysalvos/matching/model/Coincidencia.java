@@ -27,6 +27,11 @@ public class Coincidencia {
     private Long mascotaEncontradaId;
 
     @Column(nullable = false)
+    private Long usuarioIdPerdida;
+
+    private Long usuarioIdEncontrada;
+
+    @Column(nullable = false)
     private Double scoreMatch;
 
     @Enumerated(EnumType.STRING)
@@ -42,5 +47,17 @@ public class Coincidencia {
         if (this.estado == null) {
             this.estado = EstadoCoincidencia.PENDIENTE;
         }
+    }
+
+    public void confirmar() {
+        this.estado = EstadoCoincidencia.CONFIRMADA;
+    }
+
+    public void rechazar() {
+        this.estado = EstadoCoincidencia.RECHAZADA;
+    }
+
+    public void notificar() {
+        // Publicar evento a q.notificaciones
     }
 }

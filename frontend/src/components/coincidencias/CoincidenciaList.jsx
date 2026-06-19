@@ -18,7 +18,7 @@ function ScoreBar({ score }) {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between">
-        <Typography variant="caption" color="text.secondary">Score de coincidencia</Typography>
+        <Typography variant="caption" color="text.secondary">Puntuación de coincidencia</Typography>
         <Typography variant="caption" fontWeight={700}>{pct}%</Typography>
       </Box>
       <LinearProgress variant="determinate" value={pct} color={color} sx={{ borderRadius: 1 }} />
@@ -69,7 +69,7 @@ export default function CoincidenciaList({ coincidencias, loading, error }) {
 
               {c.fechaDeteccion && (
                 <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                  Detectada: {new Date(c.fechaDeteccion).toLocaleString('es-CL')}
+                  Detectada: {new Date(c.fechaDeteccion).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}
                 </Typography>
               )}
             </CardContent>

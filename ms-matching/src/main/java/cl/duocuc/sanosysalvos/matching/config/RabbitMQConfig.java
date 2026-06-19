@@ -41,6 +41,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue coincidenciaQueue() {
+        return new Queue("q.coincidencia", true);
+    }
+
+    @Bean
+    public Binding coincidenciaBinding(Queue coincidenciaQueue, TopicExchange sanosExchange) {
+        return BindingBuilder.bind(coincidenciaQueue).to(sanosExchange).with("coincidencia.*");
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }

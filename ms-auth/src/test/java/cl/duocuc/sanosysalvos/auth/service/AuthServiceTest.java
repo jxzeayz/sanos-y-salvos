@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,6 +50,7 @@ class AuthServiceTest {
                 .passwordHash("$2a$12$hash")
                 .rol(RolUsuario.DUEÑO)
                 .activo(true)
+                .eliminado(false)
                 .build();
     }
 
@@ -85,7 +87,7 @@ class AuthServiceTest {
         loginReq.setEmail("juan@test.cl");
         loginReq.setPassword("password123");
 
-        when(usuarioRepository.findByEmail("juan@test.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByEmailAndEliminadoFalse("juan@test.cl")).thenReturn(Optional.of(usuario));
         when(passwordEncoder.matches("password123", "$2a$12$hash")).thenReturn(true);
         when(jwtService.generateToken(eq("juan@test.cl"), anyMap())).thenReturn("jwt.token.test");
 
@@ -101,7 +103,7 @@ class AuthServiceTest {
         loginReq.setEmail("noexiste@test.cl");
         loginReq.setPassword("password123");
 
-        when(usuarioRepository.findByEmail("noexiste@test.cl")).thenReturn(Optional.empty());
+        when(usuarioRepository.findByEmailAndEliminadoFalse("noexiste@test.cl")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(loginReq))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -115,7 +117,7 @@ class AuthServiceTest {
         loginReq.setEmail("juan@test.cl");
         loginReq.setPassword("password123");
 
-        when(usuarioRepository.findByEmail("juan@test.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByEmailAndEliminadoFalse("juan@test.cl")).thenReturn(Optional.of(usuario));
 
         assertThatThrownBy(() -> authService.login(loginReq))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -128,11 +130,36 @@ class AuthServiceTest {
         loginReq.setEmail("juan@test.cl");
         loginReq.setPassword("wrongPassword");
 
-        when(usuarioRepository.findByEmail("juan@test.cl")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByEmailAndEliminadoFalse("juan@test.cl")).thenReturn(Optional.of(usuario));
         when(passwordEncoder.matches("wrongPassword", "$2a$12$hash")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.login(loginReq))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Credenciales incorrectas");
+    }
+
+    @Test
+    void listarUsuarios_retornaListaNoVacia() {
+        Usuario admin = Usuario.builder()
+                .id(2L).nombre("Admin User").email("admin@test.cl")
+                .rol(RolUsuario.ADMIN).activo(true).eliminado(false).build();
+
+        when(usuarioRepository.findByEliminadoFalse()).thenReturn(List.of(usuario, admin));
+
+        List<Map<String, Object>> resultado = authService.listarUsuarios();
+
+        assertThat(resultado).hasSize(2);
+        assertThat(resultado.get(0).get("nombre")).isEqualTo("Juan Pérez");
+        assertThat(resultado.get(1).get("rol")).isEqualTo(RolUsuario.ADMIN);
+        verify(usuarioRepository).findByEliminadoFalse();
+    }
+
+    @Test
+    void listarUsuarios_sinUsuarios_retornaListaVacia() {
+        when(usuarioRepository.findByEliminadoFalse()).thenReturn(List.of());
+
+        List<Map<String, Object>> resultado = authService.listarUsuarios();
+
+        assertThat(resultado).isEmpty();
     }
 }

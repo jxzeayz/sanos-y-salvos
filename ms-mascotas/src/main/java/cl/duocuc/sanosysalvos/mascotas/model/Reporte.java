@@ -39,11 +39,21 @@ public class Reporte {
     @Column(nullable = false)
     private Long usuarioId;
 
+    private String zona;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaReporte;
 
     @PrePersist
     void prePersist() {
         this.fechaReporte = LocalDateTime.now();
+    }
+
+    public void setFechaHora(LocalDateTime fechaHora) {
+        this.fechaReporte = fechaHora;
+    }
+
+    public LocalDateTime getFechaHora() {
+        return this.fechaReporte;
     }
 }

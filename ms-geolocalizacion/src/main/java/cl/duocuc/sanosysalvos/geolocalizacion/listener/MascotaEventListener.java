@@ -30,17 +30,22 @@ public class MascotaEventListener {
                 ? String.valueOf(evento.get("tipoReporte"))
                 : String.valueOf(evento.get("estado"));
 
-        if (mascotaId == null || usuarioId == null || latitud == null || longitud == null || tipoReporte == null) {
+        if ("null".equals(tipoReporte) || tipoReporte == null) {
+            log.warn("Evento ignorado porque tipoReporte/estado no proporcionado: {}", evento);
+            return;
+        }
+
+        if (mascotaId == null || usuarioId == null || latitud == null || longitud == null) {
             log.warn("Evento ignorado porque faltan datos obligatorios para geolocalización: {}", evento);
             return;
         }
 
         ZonaReporteRequest request = new ZonaReporteRequest();
-        request.setMascotaId(toLong(evento.get("mascotaId")));
-        request.setUsuarioId(toLong(evento.get("usuarioId")));
+        request.setMascotaId(mascotaId);
+        request.setUsuarioId(usuarioId);
         request.setLatitud(latitud);
         request.setLongitud(longitud);
-        request.setTipoReporte(String.valueOf(evento.get("tipoReporte")));
+        request.setTipoReporte(tipoReporte);
         request.setDescripcion((String) evento.get("descripcion"));
 
         geoService.registrarZona(request);

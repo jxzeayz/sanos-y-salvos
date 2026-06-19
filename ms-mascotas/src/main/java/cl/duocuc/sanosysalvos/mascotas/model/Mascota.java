@@ -23,8 +23,9 @@ public class Mascota {
     @Column(nullable = false)
     private String nombre;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String especie;
+    private EspecieMascota especie;
 
     private String raza;
 
@@ -34,7 +35,8 @@ public class Mascota {
     @Column(length = 500)
     private String descripcion;
 
-    private String tamano;
+    @Enumerated(EnumType.STRING)
+    private TamanoMascota tamano;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,6 +53,8 @@ public class Mascota {
 
     private LocalDateTime fechaActualizacion;
 
+    private String fotoUrl;
+
     @PrePersist
     void prePersist() {
         this.fechaReporte = LocalDateTime.now();
@@ -60,5 +64,9 @@ public class Mascota {
     @PreUpdate
     void preUpdate() {
         this.fechaActualizacion = LocalDateTime.now();
+    }
+
+    public void agregarFoto(String url) {
+        this.fotoUrl = url;
     }
 }

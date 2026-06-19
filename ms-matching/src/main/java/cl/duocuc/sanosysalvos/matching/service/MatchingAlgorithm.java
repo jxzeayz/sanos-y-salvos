@@ -10,12 +10,14 @@ import java.time.temporal.ChronoUnit;
  * Score máximo: 1.0
  *
  * Pesos:
- *   especie   → 0.30  (excluyente si no coincide)
- *   raza      → 0.25
- *   color     → 0.20
- *   tamaño    → 0.10
- *   ubicacion → 0.10
- *   fecha     → 0.05
+ *   especie    → 0.30  (excluyente si no coincide)
+ *   raza       → 0.25
+ *   color      → 0.15
+ *   tamano     → 0.10
+ *   ubicacion  → 0.10
+ *   fecha      → 0.05
+ *   nombre     → 0.03
+ *   descripcion→ 0.02
  */
 @Component
 public class MatchingAlgorithm {
@@ -29,11 +31,13 @@ public class MatchingAlgorithm {
         }
 
         double score = 0.30;
-        score += scoreRaza(perdida, encontrada)    * 0.25;
-        score += scoreColor(perdida, encontrada)   * 0.20;
-        score += scoreTamano(perdida, encontrada)  * 0.10;
+        score += scoreRaza(perdida, encontrada)     * 0.25;
+        score += scoreColor(perdida, encontrada)    * 0.15;
+        score += scoreTamano(perdida, encontrada)   * 0.10;
         score += scoreUbicacion(perdida, encontrada) * 0.10;
-        score += scoreFecha(perdida, encontrada)   * 0.05;
+        score += scoreFecha(perdida, encontrada)    * 0.05;
+        score += scoreNombre(perdida, encontrada)   * 0.03;
+        score += scoreDescripcion(perdida, encontrada) * 0.02;
 
         return Math.min(score, 1.0);
     }
@@ -63,7 +67,8 @@ public class MatchingAlgorithm {
     }
 
     private double scoreUbicacion(MascotaSnapshot a, MascotaSnapshot b) {
-        if (a.getLatitud() == null || b.getLatitud() == null) return 0.0;
+        if (a.getLatitud() == null || a.getLongitud() == null
+                || b.getLatitud() == null || b.getLongitud() == null) return 0.0;
         double distanciaKm = haversineKm(a.getLatitud(), a.getLongitud(), b.getLatitud(), b.getLongitud());
         if (distanciaKm > RADIO_MAXIMO_KM) return 0.0;
         return 1.0 - (distanciaKm / RADIO_MAXIMO_KM);
@@ -74,6 +79,37 @@ public class MatchingAlgorithm {
         long dias = Math.abs(ChronoUnit.DAYS.between(a.getFechaReporte(), b.getFechaReporte()));
         if (dias > DIAS_MAXIMOS) return 0.0;
         return 1.0 - ((double) dias / DIAS_MAXIMOS);
+    }
+
+    private double scoreNombre(MascotaSnapshot a, MascotaSnapshot b) {
+        if (a.getNombre() == null || b.getNombre() == null) return 0.5;
+        String nA = a.getNombre().trim().toLowerCase();
+        String nB = b.getNombre().trim().toLowerCase();
+        if (nA.equals(nB)) return 1.0;
+        if (nA.contains(nB) || nB.contains(nA)) return 0.6;
+        return 0.0;
+    }
+
+    private double scoreDescripcion(MascotaSnapshot a, MascotaSnapshot b) {
+        if (a.getDescripcion() == null || b.getDescripcion() == null) return 0.5;
+        String dA = a.getDescripcion().trim().toLowerCase();
+        String dB = b.getDescripcion().trim().toLowerCase();
+        if (dA.isEmpty() || dB.isEmpty()) return 0.5;
+        if (dA.equals(dB)) return 1.0;
+        String[] palabrasA = dA.split("\\s+");
+        String[] palabrasB = dB.split("\\s+");
+        int coincidencias = 0;
+        for (String p : palabrasA) {
+            if (p.length() > 3) {
+                for (String q : palabrasB) {
+                    if (p.equals(q)) { coincidencias++; break; }
+                }
+            }
+        }
+        int totalSignificantes = 0;
+        for (String p : palabrasA) { if (p.length() > 3) totalSignificantes++; }
+        if (totalSignificantes == 0) return 0.5;
+        return (double) coincidencias / totalSignificantes;
     }
 
     private double haversineKm(double lat1, double lon1, double lat2, double lon2) {

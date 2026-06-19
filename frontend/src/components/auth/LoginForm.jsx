@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import {
-  Box, TextField, Button, Typography, Alert, CircularProgress, Paper
+  Box, TextField, Button, Typography, Alert, CircularProgress, Paper, InputAdornment, IconButton
 } from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useNavigate, Link } from 'react-router-dom'
+import { useSnackbar } from '../../context/SnackbarContext.jsx'
 
 export default function LoginForm() {
   const { login } = useAuth()
   const navigate   = useNavigate()
+  const showSnackbar = useSnackbar()
 
   const [form,    setForm]    = useState({ email: '', password: '' })
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -23,9 +28,10 @@ export default function LoginForm() {
     setLoading(true)
     try {
       await login(form.email, form.password)
+      showSnackbar('Inicio de sesión exitoso', 'success')
       navigate('/mascotas')
     } catch (err) {
-      setError(err.response?.data?.message || 'Credenciales incorrectas')
+      setError(err.response?.data?.mensaje || 'Credenciales incorrectas')
     } finally {
       setLoading(false)
     }
@@ -47,8 +53,17 @@ export default function LoginForm() {
           />
           <TextField
             fullWidth margin="normal" label="Contraseña"
-            name="password" type="password" value={form.password}
+            name="password" type={showPassword ? 'text' : 'password'} value={form.password}
             onChange={handleChange} required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit" fullWidth variant="contained" size="large"
