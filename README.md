@@ -86,3 +86,29 @@ Ver [docs/plan-branching.md](./docs/plan-branching.md) para detalle completo.
 - **Strategy** (MatchingAlgorithm en ms-matching)
 
 Ver [docs/analisis-patrones-arquetipos.md](./docs/analisis-patrones-arquetipos.md) para análisis completo.
+
+Posterior mente nevesitamos de un .env para que el programa pueda ejecutarse 
+# ─── Base de datos ───
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+# ─── JWT (clave de mínimo 32 caracteres) ───
+JWT_SECRET=sanos-y-salvos-clave-super-secreta-256-bits-minimo-2026
+JWT_EXPIRATION_MS=3600000
+
+# ─── RabbitMQ ───
+RABBITMQ_USER=guest
+RABBITMQ_PASS=guest
+
+# ─── MinIO ───
+MINIO_USER=minioadmin
+MINIO_PASS=minioadmin
+
+# ─── Correo (dummy local, no envía correos reales) ───
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=notificaciones@sanosysalvos.com
+SMTP_PASS=dummy-password-local
+
+# ─── CORS ───
+CORS_ORIGINS=http://localhost:3000,https://localhost
