@@ -9,5 +9,4 @@ import java.util.List;
 public interface MascotaRepository extends JpaRepository<Mascota, Long> {
     List<Mascota> findByEstado(EstadoMascota estado);
     List<Mascota> findByUsuarioId(Long usuarioId);
-    List<Mascota> findByEspecieAndEstado(String especie, EstadoMascota estado);
 }

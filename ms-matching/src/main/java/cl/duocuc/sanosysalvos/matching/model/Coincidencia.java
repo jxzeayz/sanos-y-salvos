@@ -48,16 +48,4 @@ public class Coincidencia {
             this.estado = EstadoCoincidencia.PENDIENTE;
         }
     }
-
-    public void confirmar() {
-        this.estado = EstadoCoincidencia.CONFIRMADA;
-    }
-
-    public void rechazar() {
-        this.estado = EstadoCoincidencia.RECHAZADA;
-    }
-
-    public void notificar() {
-        // Publicar evento a q.notificaciones
-    }
 }

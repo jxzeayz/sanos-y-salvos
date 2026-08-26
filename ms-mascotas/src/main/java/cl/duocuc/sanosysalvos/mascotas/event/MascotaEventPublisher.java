@@ -1,6 +1,7 @@
 package cl.duocuc.sanosysalvos.mascotas.event;
 
 import cl.duocuc.sanosysalvos.mascotas.model.Mascota;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -20,6 +21,7 @@ public class MascotaEventPublisher {
     @Value("${rabbitmq.exchange}")
     private String exchange;
 
+    @CircuitBreaker(name = "matching-service", fallbackMethod = "publishFallback")
     public void publishMascotaRegistrada(Mascota mascota) {
         Map<String, Object> evento = buildEventoBase(mascota);
         evento.put("evento", "mascota.registrada");
@@ -28,6 +30,7 @@ public class MascotaEventPublisher {
         log.info("Evento publicado: {} para mascota ID {}", routingKey, mascota.getId());
     }
 
+    @CircuitBreaker(name = "matching-service", fallbackMethod = "publishFallback")
     public void publishMascotaActualizada(Mascota mascota) {
         Map<String, Object> evento = buildEventoBase(mascota);
         evento.put("evento", "mascota.actualizada");
@@ -44,11 +47,16 @@ public class MascotaEventPublisher {
         log.info("Evento publicado: {} para mascota ID {}", routingKey, mascota.getId());
     }
 
+    @CircuitBreaker(name = "matching-service", fallbackMethod = "publishFallback")
     public void publishMascotaEliminada(Mascota mascota) {
         Map<String, Object> evento = buildEventoBase(mascota);
         evento.put("evento", "mascota.eliminada");
         rabbitTemplate.convertAndSend(exchange, "mascota.eliminada", evento);
         log.info("Evento publicado: mascota.eliminada para mascota ID {}", mascota.getId());
+    }
+
+    private void publishFallback(Mascota mascota, Exception ex) {
+        log.warn("Circuit breaker activo: no se pudo publicar evento para mascota {}. Error: {}", mascota.getId(), ex.getMessage());
     }
 
     private Map<String, Object> buildEventoBase(Mascota mascota) {

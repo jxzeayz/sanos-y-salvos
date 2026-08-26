@@ -1,8 +1,10 @@
 package cl.duocuc.sanosysalvos.matching.service;
 
+import cl.duocuc.sanosysalvos.matching.exception.AccesoNoAutorizadoException;
 import cl.duocuc.sanosysalvos.matching.model.Coincidencia;
 import cl.duocuc.sanosysalvos.matching.model.EstadoCoincidencia;
 import cl.duocuc.sanosysalvos.matching.model.MascotaSnapshot;
+import cl.duocuc.sanosysalvos.matching.event.MascotaEventPublisher;
 import cl.duocuc.sanosysalvos.matching.repository.CoincidenciaRepository;
 import cl.duocuc.sanosysalvos.matching.repository.MascotaSnapshotRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,7 @@ class MatchingServiceTest {
     @Mock private MascotaSnapshotRepository snapshotRepository;
     @Mock private CoincidenciaRepository coincidenciaRepository;
     @Mock private MatchingAlgorithm algorithm;
+    @Mock private MascotaEventPublisher eventPublisher;
 
     @InjectMocks private MatchingService matchingService;
 
@@ -66,6 +69,7 @@ class MatchingServiceTest {
         assertThat(resultado.get(0).getScoreMatch()).isEqualTo(0.85);
         assertThat(resultado.get(0).getEstado()).isEqualTo(EstadoCoincidencia.PENDIENTE);
         verify(coincidenciaRepository).save(any());
+        verify(eventPublisher).publishCoincidenciaHallada(coincidencia);
     }
 
     @Test
@@ -130,13 +134,14 @@ class MatchingServiceTest {
     void actualizarEstado_coincidenciaExistente_cambiaEstado() {
         Coincidencia c = Coincidencia.builder()
                 .id(1L).mascotaPerdidaId(1L).mascotaEncontradaId(2L)
+                .usuarioIdPerdida(10L).usuarioIdEncontrada(20L)
                 .scoreMatch(0.85).estado(EstadoCoincidencia.PENDIENTE).build();
 
         when(coincidenciaRepository.findById(1L)).thenReturn(Optional.of(c));
         c.setEstado(EstadoCoincidencia.CONFIRMADA);
         when(coincidenciaRepository.save(c)).thenReturn(c);
 
-        Coincidencia resultado = matchingService.actualizarEstado(1L, EstadoCoincidencia.CONFIRMADA);
+        Coincidencia resultado = matchingService.actualizarEstado(1L, EstadoCoincidencia.CONFIRMADA, 10L);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoCoincidencia.CONFIRMADA);
     }
@@ -145,9 +150,24 @@ class MatchingServiceTest {
     void actualizarEstado_noExistente_lanzaIllegalArgumentException() {
         when(coincidenciaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> matchingService.actualizarEstado(99L, EstadoCoincidencia.CONFIRMADA))
+        assertThatThrownBy(() -> matchingService.actualizarEstado(99L, EstadoCoincidencia.CONFIRMADA, 10L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("no encontrada");
+    }
+
+    @Test
+    void actualizarEstado_usuarioAjenoALaCoincidencia_lanzaAccesoNoAutorizadoException() {
+        Coincidencia c = Coincidencia.builder()
+                .id(1L).mascotaPerdidaId(1L).mascotaEncontradaId(2L)
+                .usuarioIdPerdida(10L).usuarioIdEncontrada(20L)
+                .scoreMatch(0.85).estado(EstadoCoincidencia.PENDIENTE).build();
+
+        when(coincidenciaRepository.findById(1L)).thenReturn(Optional.of(c));
+
+        assertThatThrownBy(() -> matchingService.actualizarEstado(1L, EstadoCoincidencia.CONFIRMADA, 999L))
+                .isInstanceOf(AccesoNoAutorizadoException.class);
+
+        verify(coincidenciaRepository, never()).save(any());
     }
 
     @Test

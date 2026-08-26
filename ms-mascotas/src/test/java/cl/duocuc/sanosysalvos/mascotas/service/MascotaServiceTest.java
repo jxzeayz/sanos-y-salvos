@@ -2,6 +2,8 @@ package cl.duocuc.sanosysalvos.mascotas.service;
 
 import cl.duocuc.sanosysalvos.mascotas.dto.MascotaRequest;
 import cl.duocuc.sanosysalvos.mascotas.event.MascotaEventPublisher;
+import cl.duocuc.sanosysalvos.mascotas.exception.AccesoNoAutorizadoException;
+import cl.duocuc.sanosysalvos.mascotas.exception.RecursoNoEncontradoException;
 import cl.duocuc.sanosysalvos.mascotas.model.EstadoMascota;
 import cl.duocuc.sanosysalvos.mascotas.model.EspecieMascota;
 import cl.duocuc.sanosysalvos.mascotas.model.Mascota;
@@ -69,6 +71,7 @@ class MascotaServiceTest {
         assertThat(resultado.getEspecie()).isEqualTo(EspecieMascota.PERRO);
         assertThat(resultado.getEstado()).isEqualTo(EstadoMascota.PERDIDA);
         verify(mascotaRepository).save(any(Mascota.class));
+        verify(eventPublisher).publishMascotaRegistrada(mascota);
     }
 
     @Test
@@ -105,11 +108,11 @@ class MascotaServiceTest {
     }
 
     @Test
-    void obtenerPorId_noExistente_lanzaIllegalArgumentException() {
+    void obtenerPorId_noExistente_lanzaRecursoNoEncontradoException() {
         when(mascotaRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> mascotaService.obtenerPorId(99L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(RecursoNoEncontradoException.class)
                 .hasMessageContaining("no encontrada");
     }
 
@@ -120,10 +123,31 @@ class MascotaServiceTest {
                 .estado(EstadoMascota.REUNIFICADA).usuarioId(1L).build();
         when(mascotaRepository.save(any(Mascota.class))).thenReturn(reunificada);
 
-        Mascota resultado = mascotaService.actualizarEstado(1L, EstadoMascota.REUNIFICADA, null);
+        Mascota resultado = mascotaService.actualizarEstado(1L, EstadoMascota.REUNIFICADA, 1L);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoMascota.REUNIFICADA);
         verify(mascotaRepository).save(any(Mascota.class));
+    }
+
+    @Test
+    void actualizarEstado_usuarioDistintoAlDueno_lanzaAccesoNoAutorizadoException() {
+        when(mascotaRepository.findById(1L)).thenReturn(Optional.of(mascota));
+
+        assertThatThrownBy(() -> mascotaService.actualizarEstado(1L, EstadoMascota.REUNIFICADA, 999L))
+                .isInstanceOf(AccesoNoAutorizadoException.class);
+
+        verify(mascotaRepository, never()).save(any(Mascota.class));
+    }
+
+    @Test
+    void eliminar_usuarioDistintoAlDueno_lanzaAccesoNoAutorizadoException() {
+        when(mascotaRepository.findById(1L)).thenReturn(Optional.of(mascota));
+
+        assertThatThrownBy(() -> mascotaService.eliminar(1L, 999L))
+                .isInstanceOf(AccesoNoAutorizadoException.class);
+
+        verify(mascotaRepository, never()).delete(any(Mascota.class));
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test

@@ -181,6 +181,7 @@ export default function MascotaForm({ initialData }) {
             hidden
             ref={fileInputRef}
             onChange={handleFotoChange}
+            aria-label="Subir foto de la mascota"
           />
           {fotoPreview ? (
             <Card elevation={1} sx={{ position: 'relative', overflow: 'hidden' }}>
@@ -199,6 +200,7 @@ export default function MascotaForm({ initialData }) {
               <IconButton
                 size="small"
                 onClick={handleRemoveFoto}
+                aria-label="Quitar foto"
                 sx={{
                   position: 'absolute', top: 8, right: 8,
                   bgcolor: 'rgba(0,0,0,0.6)', color: 'white',

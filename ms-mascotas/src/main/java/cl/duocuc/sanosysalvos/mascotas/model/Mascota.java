@@ -65,8 +65,4 @@ public class Mascota {
     void preUpdate() {
         this.fechaActualizacion = LocalDateTime.now();
     }
-
-    public void agregarFoto(String url) {
-        this.fotoUrl = url;
-    }
 }

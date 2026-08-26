@@ -13,7 +13,7 @@ const ESTADO_CONFIG = {
 }
 
 function ScoreBar({ score }) {
-  const pct     = Math.round(score * 100)
+  const pct     = Math.round((score ?? 0) * 100)
   const color   = pct >= 80 ? 'success' : pct >= 60 ? 'warning' : 'error'
   return (
     <Box>

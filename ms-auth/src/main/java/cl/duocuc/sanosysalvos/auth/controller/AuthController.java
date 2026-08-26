@@ -104,4 +104,14 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("status", "UP", "service", "ms-auth"));
     }
 
+    /**
+     * Endpoint interno, sin autenticación: solo alcanzable dentro de la red Docker
+     * (ms-auth no tiene 'ports:' publicados al host). Lo usan otros microservicios
+     * para resolver datos básicos de un usuario, ej. ms-notificaciones para enviar correos.
+     */
+    @GetMapping("/internal/usuarios/{id}")
+    public ResponseEntity<Map<String, Object>> buscarUsuarioInterno(@PathVariable Long id) {
+        return ResponseEntity.ok(authService.buscarUsuarioPorId(id));
+    }
+
 }

@@ -1,5 +1,7 @@
 package cl.duocuc.sanosysalvos.matching.config;
 
+import cl.duocuc.sanosysalvos.matching.exception.AccesoNoAutorizadoException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -9,8 +11,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AccesoNoAutorizadoException.class)
+    public ResponseEntity<Map<String, String>> handleNoAutorizado(AccesoNoAutorizadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", ex.getMessage()));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
@@ -25,6 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+        log.error("Error interno no controlado", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("mensaje", "Error interno del servidor"));
     }

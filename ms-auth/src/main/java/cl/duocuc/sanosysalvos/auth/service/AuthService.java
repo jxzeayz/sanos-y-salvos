@@ -165,6 +165,21 @@ public class AuthService {
         usuarioRepository.save(usuario);
     }
 
+    /**
+     * Uso interno (llamado por otros microservicios dentro de la red Docker,
+     * ej. ms-notificaciones para resolver el email de un usuario).
+     */
+    public Map<String, Object> buscarUsuarioPorId(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .filter(u -> !u.isEliminado())
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        Map<String, Object> info = new HashMap<>();
+        info.put("id", usuario.getId());
+        info.put("nombre", usuario.getNombre());
+        info.put("email", usuario.getEmail());
+        return info;
+    }
+
     public List<Map<String, Object>> listarUsuarios() {
         return usuarioRepository.findByEliminadoFalse().stream()
                 .map(u -> {

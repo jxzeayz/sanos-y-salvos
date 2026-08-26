@@ -98,6 +98,11 @@ public class GeoService {
         return new double[]{latitud + latOffset, longitud + lonOffset};
     }
 
+    @Transactional
+    public void eliminarZonasDeMascota(Long mascotaId) {
+        zonaReporteRepository.deleteByMascotaId(mascotaId);
+    }
+
     public List<ZonaReporte> buscarEnRadio(double latitud, double longitud, double radioMetros) {
         return zonaReporteRepository.findByRadio(latitud, longitud, radioMetros);
     }

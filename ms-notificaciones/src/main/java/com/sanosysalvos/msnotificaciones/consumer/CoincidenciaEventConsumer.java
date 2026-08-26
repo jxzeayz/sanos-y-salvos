@@ -1,7 +1,9 @@
 package com.sanosysalvos.msnotificaciones.consumer;
 
+import com.sanosysalvos.msnotificaciones.client.UsuarioClient;
 import com.sanosysalvos.msnotificaciones.model.Notificacion;
 import com.sanosysalvos.msnotificaciones.model.TipoNotificacion;
+import com.sanosysalvos.msnotificaciones.service.EmailService;
 import com.sanosysalvos.msnotificaciones.service.NotificacionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -14,9 +16,13 @@ import java.util.Map;
 public class CoincidenciaEventConsumer {
 
     private final NotificacionService notificacionService;
+    private final UsuarioClient usuarioClient;
+    private final EmailService emailService;
 
-    public CoincidenciaEventConsumer(NotificacionService notificacionService) {
+    public CoincidenciaEventConsumer(NotificacionService notificacionService, UsuarioClient usuarioClient, EmailService emailService) {
         this.notificacionService = notificacionService;
+        this.usuarioClient = usuarioClient;
+        this.emailService = emailService;
     }
 
     @RabbitListener(queues = "${rabbitmq.queue.notificaciones}")
@@ -65,5 +71,8 @@ public class CoincidenciaEventConsumer {
 
         notificacionService.guardar(notificacion);
         log.info("Notificacion guardada para usuario {}", usuarioId);
+
+        String email = usuarioClient.obtenerEmail(usuarioId);
+        emailService.enviarNotificacion(email, notificacion.getTitulo(), mensajeNotificacion);
     }
 }

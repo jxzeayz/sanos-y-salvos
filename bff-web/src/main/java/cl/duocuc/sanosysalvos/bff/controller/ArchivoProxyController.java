@@ -183,17 +183,10 @@ public class ArchivoProxyController {
     }
 
     private Long getUsuarioId(Claims claims) {
-        Object id = claims.get("usuarioId");
-        if (id instanceof Number) return ((Number) id).longValue();
-        return id != null ? Long.valueOf(id.toString()) : null;
+        return jwtValidator.getUsuarioId(claims);
     }
 
     private Claims validarToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
-        try {
-            return jwtValidator.validate(authHeader.substring(7));
-        } catch (Exception e) {
-            return null;
-        }
+        return jwtValidator.validarHeader(authHeader).orElse(null);
     }
 }

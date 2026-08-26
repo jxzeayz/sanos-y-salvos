@@ -172,7 +172,10 @@ export default function PerfilPage() {
                 required
                 InputProps={{
                   endAdornment: <InputAdornment position="end">
-                    <IconButton onClick={() => setShowCurrent(!showCurrent)} size="small" edge="end">
+                    <IconButton
+                      onClick={() => setShowCurrent(!showCurrent)} size="small" edge="end"
+                      aria-label={showCurrent ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
                       {showCurrent ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>,
@@ -186,7 +189,10 @@ export default function PerfilPage() {
                 required
                 InputProps={{
                   endAdornment: <InputAdornment position="end">
-                    <IconButton onClick={() => setShowNew(!showNew)} size="small" edge="end">
+                    <IconButton
+                      onClick={() => setShowNew(!showNew)} size="small" edge="end"
+                      aria-label={showNew ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
                       {showNew ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>,

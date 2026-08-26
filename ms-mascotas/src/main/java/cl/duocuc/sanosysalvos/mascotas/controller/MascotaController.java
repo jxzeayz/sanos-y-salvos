@@ -58,7 +58,7 @@ public class MascotaController {
     public ResponseEntity<Mascota> actualizarEstado(
             @PathVariable Long id,
             @RequestParam EstadoMascota estado,
-            @RequestParam(required = false) Long usuarioId) {
+            @RequestParam Long usuarioId) {
         return ResponseEntity.ok(mascotaService.actualizarEstado(id, estado, usuarioId));
     }
 
