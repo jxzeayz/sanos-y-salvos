@@ -45,6 +45,22 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding geoReunificadaBinding(Queue geoQueue, TopicExchange sanosSalvosExchange) {
+        return BindingBuilder
+                .bind(geoQueue)
+                .to(sanosSalvosExchange)
+                .with("mascota.reunificada");
+    }
+
+    @Bean
+    public Binding geoEliminadaBinding(Queue geoQueue, TopicExchange sanosSalvosExchange) {
+        return BindingBuilder
+                .bind(geoQueue)
+                .to(sanosSalvosExchange)
+                .with("mascota.eliminada");
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }

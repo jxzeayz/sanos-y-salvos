@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   Box, Typography, Grid, Button, ToggleButtonGroup,
   ToggleButton, CircularProgress, Alert, TextField, InputAdornment
@@ -39,25 +39,26 @@ export default function MascotasPage() {
         const res = await getMascotas(filtro)
         data = res.data || []
       }
-
-      if (busqueda) {
-        const q = busqueda.toLowerCase()
-        data = data.filter((m) =>
-          m.nombre?.toLowerCase().includes(q) ||
-          m.especie?.toLowerCase().includes(q) ||
-          m.raza?.toLowerCase().includes(q) ||
-          m.color?.toLowerCase().includes(q)
-        )
-      }
       setMascotas(data)
     } catch {
       setError('Error al cargar las mascotas')
     } finally {
       setLoading(false)
     }
-  }, [filtro, busqueda])
+  }, [filtro])
 
   useEffect(() => { cargarMascotas() }, [cargarMascotas])
+
+  const mascotasFiltradas = useMemo(() => {
+    if (!busqueda) return mascotas
+    const q = busqueda.toLowerCase()
+    return mascotas.filter((m) =>
+      m.nombre?.toLowerCase().includes(q) ||
+      m.especie?.toLowerCase().includes(q) ||
+      m.raza?.toLowerCase().includes(q) ||
+      m.color?.toLowerCase().includes(q)
+    )
+  }, [mascotas, busqueda])
 
   const verCoincidencias = (mascotaId) => {
     setCoincidencias(null)
@@ -126,7 +127,7 @@ export default function MascotasPage() {
       {loading && <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>}
       {error   && <Alert severity="error">{error}</Alert>}
 
-      {!loading && !error && mascotas.length === 0 && (
+      {!loading && !error && mascotasFiltradas.length === 0 && (
         <Alert severity="info" sx={{ mt: 2 }}>
           {filtro === 'mis'
             ? <>No tienes mascotas registradas.{' '}
@@ -136,7 +137,7 @@ export default function MascotasPage() {
       )}
 
       <Grid container spacing={2}>
-        {mascotas.map((m) => (
+        {mascotasFiltradas.map((m) => (
           <Grid item xs={12} sm={6} md={4} key={m.id}>
             <MascotaCard
               mascota={m}

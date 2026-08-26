@@ -94,6 +94,13 @@ class GeoServiceTest {
     }
 
     @Test
+    void eliminarZonasDeMascota_delegaEnElRepositorio() {
+        geoService.eliminarZonasDeMascota(1L);
+
+        verify(zonaReporteRepository).deleteByMascotaId(1L);
+    }
+
+    @Test
     void obtenerZonasCalientes_retornaMapaConCamposEsperados() {
         Object[] row1 = { -33.4569, -70.6483, 8L };
         Object[] row2 = { -33.48,   -70.65,   3L };

@@ -56,6 +56,7 @@ export default function Navbar() {
               color="inherit"
               onClick={(e) => setAnchorEl(e.currentTarget)}
               size="small"
+              aria-label="Menú de cuenta"
             >
               <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', fontSize: 14 }}>
                 {usuario?.nombre?.charAt(0)?.toUpperCase() || 'U'}

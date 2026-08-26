@@ -17,7 +17,15 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue notificacionesQueue() {
-        return new Queue("q.notificaciones", true);
+        return QueueBuilder.durable("q.notificaciones")
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", "q.notificaciones.dlq")
+                .build();
+    }
+
+    @Bean
+    public Queue notificacionesDlqQueue() {
+        return QueueBuilder.durable("q.notificaciones.dlq").build();
     }
 
     @Bean

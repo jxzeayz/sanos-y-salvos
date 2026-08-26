@@ -288,6 +288,7 @@ services:
       SPRING_MAIL_PORT: ${SMTP_PORT:-587}
       SPRING_MAIL_USERNAME: ${SMTP_USER:-notificaciones@sanosysalvos.com}
       SPRING_MAIL_PASSWORD: ${SMTP_PASS}
+      SERVICES_AUTH_URL: http://ms-auth:8084
     expose:
       - "8085"
     depends_on:
@@ -295,6 +296,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      ms-auth:
+        condition: service_started
     networks:
       - sanos-net
     restart: on-failure

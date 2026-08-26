@@ -11,6 +11,8 @@ public interface ZonaReporteRepository extends JpaRepository<ZonaReporte, Long> 
 
     List<ZonaReporte> findByTipoReporte(String tipoReporte);
 
+    void deleteByMascotaId(Long mascotaId);
+
     @Query(value = """
         SELECT * FROM zonas_reporte
         WHERE ST_DWithin(
@@ -25,9 +27,11 @@ public interface ZonaReporteRepository extends JpaRepository<ZonaReporte, Long> 
             @Param("radioMetros") double radioMetros);
 
     @Query(value = """
-        SELECT latitud, longitud, COUNT(*) as cantidad
+        SELECT ROUND(CAST(latitud AS numeric), 3) AS lat_grilla,
+               ROUND(CAST(longitud AS numeric), 3) AS lon_grilla,
+               COUNT(*) as cantidad
         FROM zonas_reporte
-        GROUP BY latitud, longitud
+        GROUP BY lat_grilla, lon_grilla
         ORDER BY cantidad DESC
         LIMIT 10
         """, nativeQuery = true)

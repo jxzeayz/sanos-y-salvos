@@ -92,7 +92,7 @@ export default function MascotaCard({ mascota, usuarioId, onVerCoincidencias, on
               size="small"
             />
             {esDueno && (
-              <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)} aria-label="Más opciones">
                 <MoreVertIcon fontSize="small" />
               </IconButton>
             )}

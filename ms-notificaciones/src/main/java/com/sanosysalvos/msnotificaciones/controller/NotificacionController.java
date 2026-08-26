@@ -34,13 +34,8 @@ public class NotificacionController {
         return ResponseEntity.ok(service.obtenerNotificacionPorId(id));
     }
 
-    @PatchMapping("/{id}/leida")
-    public ResponseEntity<Notificacion> marcarComoLeida(@PathVariable Long id) {
-        return ResponseEntity.ok(service.marcarComoLeida(id));
-    }
-
     @PatchMapping("/{id}/leer")
-    public ResponseEntity<Notificacion> marcarComoLeidaAlt(@PathVariable Long id) {
+    public ResponseEntity<Notificacion> marcarComoLeida(@PathVariable Long id) {
         return ResponseEntity.ok(service.marcarComoLeida(id));
     }
 

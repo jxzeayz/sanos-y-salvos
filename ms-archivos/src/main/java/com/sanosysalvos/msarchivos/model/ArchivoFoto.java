@@ -26,5 +26,7 @@ public class ArchivoFoto {
 
     private Long mascotaId;
 
+    private String objectName;
+
     private LocalDateTime subidoEn;
 }

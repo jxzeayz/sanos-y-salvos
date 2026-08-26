@@ -1,5 +1,6 @@
 package cl.duocuc.sanosysalvos.matching.service;
 
+import cl.duocuc.sanosysalvos.matching.exception.AccesoNoAutorizadoException;
 import cl.duocuc.sanosysalvos.matching.model.Coincidencia;
 import cl.duocuc.sanosysalvos.matching.model.EstadoCoincidencia;
 import cl.duocuc.sanosysalvos.matching.model.MascotaSnapshot;
@@ -81,6 +82,14 @@ public class MatchingService {
         return coincidencias;
     }
 
+    @Transactional
+    public void eliminarMascota(Long mascotaId) {
+        if (snapshotRepository.existsById(mascotaId)) {
+            snapshotRepository.deleteById(mascotaId);
+            log.info("Snapshot eliminado para mascota {} (evento mascota.eliminada)", mascotaId);
+        }
+    }
+
     public List<Coincidencia> listarCoincidencias() {
         return coincidenciaRepository.findAll();
     }
@@ -90,9 +99,12 @@ public class MatchingService {
     }
 
     @Transactional
-    public Coincidencia actualizarEstado(Long id, EstadoCoincidencia estado) {
+    public Coincidencia actualizarEstado(Long id, EstadoCoincidencia estado, Long usuarioId) {
         Coincidencia c = coincidenciaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Coincidencia no encontrada: " + id));
+        if (!usuarioId.equals(c.getUsuarioIdPerdida()) && !usuarioId.equals(c.getUsuarioIdEncontrada())) {
+            throw new AccesoNoAutorizadoException("No tienes permiso para modificar esta coincidencia");
+        }
         c.setEstado(estado);
         return coincidenciaRepository.save(c);
     }

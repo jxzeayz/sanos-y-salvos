@@ -22,6 +22,21 @@ public class MascotaEventListener {
         log.info("Evento recibido en MS-Geolocalización: {}", evento);
 
         Long mascotaId = toLong(evento.get("mascotaId"));
+
+        String tipoEvento = (String) evento.get("evento");
+        boolean esEliminacion = "mascota.eliminada".equals(tipoEvento);
+        boolean esReunificacion = "REUNIFICADA".equals(evento.get("estado"));
+        if (esEliminacion || esReunificacion) {
+            if (mascotaId == null) {
+                log.warn("Evento ignorado (eliminación/reunificación) sin mascotaId: {}", evento);
+                return;
+            }
+            geoService.eliminarZonasDeMascota(mascotaId);
+            log.info("Zonas de reporte eliminadas para mascota ID {} (eliminada={}, reunificada={})",
+                    mascotaId, esEliminacion, esReunificacion);
+            return;
+        }
+
         Long usuarioId = toLong(evento.get("usuarioId"));
         Double latitud = toDouble(evento.get("latitud"));
         Double longitud = toDouble(evento.get("longitud"));

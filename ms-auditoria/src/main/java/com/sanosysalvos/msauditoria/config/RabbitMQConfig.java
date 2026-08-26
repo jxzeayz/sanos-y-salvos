@@ -17,11 +17,23 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue queue() {
-        return new Queue("q.auditoria", true);
+        return QueueBuilder.durable("q.auditoria")
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", "q.auditoria.dlq")
+                .build();
+    }
+
+    @Bean
+    public Queue auditoriaDlqQueue() {
+        return QueueBuilder.durable("q.auditoria.dlq").build();
     }
 
     @Bean
     public Binding binding() {
+        // "*.*" solo matchea routing keys de exactamente 2 segmentos (ej. "mascota.perdida",
+        // "coincidencia.hallada", "zona.actualizada"). Todos los eventos actuales del sistema
+        // cumplen ese formato; si se agrega un evento de 1 o 3+ segmentos, este binding no lo
+        // capturará y quedará fuera de la auditoría sin ningún error visible.
         return BindingBuilder.bind(queue()).to(exchange()).with("*.*");
     }
 

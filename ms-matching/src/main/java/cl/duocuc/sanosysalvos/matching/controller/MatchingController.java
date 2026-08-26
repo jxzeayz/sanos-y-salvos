@@ -30,8 +30,9 @@ public class MatchingController {
     @PatchMapping("/coincidencias/{id}/estado")
     public ResponseEntity<Coincidencia> actualizarEstado(
             @PathVariable Long id,
-            @RequestParam EstadoCoincidencia estado) {
-        return ResponseEntity.ok(matchingService.actualizarEstado(id, estado));
+            @RequestParam EstadoCoincidencia estado,
+            @RequestParam Long usuarioId) {
+        return ResponseEntity.ok(matchingService.actualizarEstado(id, estado, usuarioId));
     }
 
     @GetMapping("/health")

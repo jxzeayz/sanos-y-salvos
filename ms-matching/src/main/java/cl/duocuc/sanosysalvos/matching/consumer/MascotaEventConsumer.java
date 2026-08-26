@@ -21,6 +21,11 @@ public class MascotaEventConsumer {
     public void onMascotaEvent(Map<String, Object> evento) {
         log.info("Evento recibido para matching: {}", evento);
 
+        if ("mascota.eliminada".equals(evento.get("evento"))) {
+            matchingService.eliminarMascota(toLong(evento.get("mascotaId")));
+            return;
+        }
+
         MascotaSnapshot snapshot = MascotaSnapshot.builder()
                 .mascotaId(toLong(evento.get("mascotaId")))
                 .usuarioId(toLong(evento.get("usuarioId")))

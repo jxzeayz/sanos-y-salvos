@@ -121,11 +121,6 @@ public class AuditoriaProxyController {
     }
 
     private Claims validarToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
-        try {
-            return jwtValidator.validate(authHeader.substring(7));
-        } catch (Exception e) {
-            return null;
-        }
+        return jwtValidator.validarHeader(authHeader).orElse(null);
     }
 }

@@ -40,6 +40,7 @@ public class ContactoProxyController {
 
         return matchingClient.get()
                 .uri("/api/matching/coincidencias/mascota/{mascotaId}", mascotaId)
+                .header("Authorization", authHeader)
                 .exchangeToMono(response -> response.bodyToMono(List.class)
                         .defaultIfEmpty(List.of())
                         .flatMap(coincidencias -> {
@@ -84,6 +85,7 @@ public class ContactoProxyController {
                             Long finalContactoMascotaId = contactoMascotaId;
                             return mascotasClient.get()
                                     .uri("/api/mascotas/{id}", finalContactoMascotaId)
+                                    .header("Authorization", authHeader)
                                     .exchangeToMono(mascotaResp -> mascotaResp.bodyToMono(Map.class)
                                             .defaultIfEmpty(Map.of())
                                             .map(mascota -> {
@@ -101,17 +103,10 @@ public class ContactoProxyController {
     }
 
     private Long getUsuarioId(Claims claims) {
-        Object id = claims.get("usuarioId");
-        if (id instanceof Number) return ((Number) id).longValue();
-        return id != null ? Long.valueOf(id.toString()) : null;
+        return jwtValidator.getUsuarioId(claims);
     }
 
     private Claims validarToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
-        try {
-            return jwtValidator.validate(authHeader.substring(7));
-        } catch (Exception e) {
-            return null;
-        }
+        return jwtValidator.validarHeader(authHeader).orElse(null);
     }
 }

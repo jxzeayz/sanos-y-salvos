@@ -99,7 +99,11 @@ export default function RegisterForm() {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end" size="small"
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>

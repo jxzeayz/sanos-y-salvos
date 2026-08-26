@@ -1,22 +1,28 @@
 package cl.duocuc.sanosysalvos.bff.config;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * bff-web corre como aplicación servlet (ver GlobalCorsConfig), por lo que el
+ * rate limiting se implementa como un jakarta.servlet.Filter estándar y no
+ * como un WebFilter reactivo (que aquí nunca se ejecutaría).
+ */
 @Component
-public class RateLimitConfig implements WebFilter {
+public class RateLimitConfig extends OncePerRequestFilter {
 
     @Value("${bff.rate-limit.max-requests-per-minute:100}")
     private int maxRequestsPerMinute;
@@ -27,14 +33,15 @@ public class RateLimitConfig implements WebFilter {
     private final Map<String, RequestWindow> requestMap = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String path = exchange.getRequest().getPath().value();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-        if (path.startsWith("/actuator")) {
-            return chain.filter(exchange);
+        if (request.getRequestURI().startsWith("/actuator")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        String clientIp = resolveClientIp(exchange);
+        String clientIp = resolveClientIp(request);
 
         RequestWindow window = requestMap.computeIfAbsent(clientIp, k -> new RequestWindow());
         synchronized (window) {
@@ -44,32 +51,39 @@ public class RateLimitConfig implements WebFilter {
                 window.windowStart = now;
             }
             if (window.count >= maxRequestsPerMinute) {
-                return buildRateLimitResponse(exchange, clientIp);
+                writeRateLimitResponse(response);
+                return;
             }
             window.count++;
         }
 
-        return chain.filter(exchange);
+        filterChain.doFilter(request, response);
     }
 
-    private String resolveClientIp(ServerWebExchange exchange) {
-        InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
-        if (remoteAddress != null && remoteAddress.getAddress() != null) {
-            return remoteAddress.getAddress().getHostAddress();
-        }
-        String xff = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-        return xff != null ? xff.split(",")[0].trim() : "unknown";
+    /**
+     * Se usa la IP real de la conexión TCP, nunca X-Forwarded-For: ese header lo
+     * controla el cliente y es trivialmente falsificable si no hay un proxy
+     * confiable en frente reescribiéndolo.
+     */
+    private String resolveClientIp(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        return remoteAddr != null ? remoteAddr : "unknown";
     }
 
-    private Mono<Void> buildRateLimitResponse(ServerWebExchange exchange, String clientIp) {
-        exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        exchange.getResponse().getHeaders().set("Retry-After", "60");
+    @Scheduled(fixedRateString = "${bff.rate-limit.window-ms:60000}")
+    void limpiarEntradasExpiradas() {
+        long now = Instant.now().toEpochMilli();
+        requestMap.entrySet().removeIf(entry -> now - entry.getValue().windowStart > windowMs);
+    }
+
+    private void writeRateLimitResponse(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setHeader("Retry-After", "60");
 
         String body = "{\"mensaje\":\"Límite de solicitudes excedido. Máximo " + maxRequestsPerMinute
                 + " solicitudes por minuto.\",\"segundosParaReintentar\":60}";
-        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(body.getBytes());
-        return exchange.getResponse().writeWith(Mono.just(buffer));
+        response.getWriter().write(body);
     }
 
     private static class RequestWindow {

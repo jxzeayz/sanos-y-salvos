@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JwtValidator {
@@ -28,12 +28,25 @@ public class JwtValidator {
                 .getPayload();
     }
 
-    public boolean isValid(String token) {
-        try {
-            Claims claims = validate(token);
-            return claims.getExpiration().after(new Date());
-        } catch (Exception e) {
-            return false;
+    /**
+     * Valida el header "Authorization: Bearer &lt;token&gt;" de una request de un
+     * *ProxyController. Devuelve Optional.empty() si el header falta, no trae
+     * "Bearer " o el token es inválido/expirado, en vez de lanzar.
+     */
+    public Optional<Claims> validarHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Optional.empty();
         }
+        try {
+            return Optional.of(validate(authHeader.substring(7)));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    public Long getUsuarioId(Claims claims) {
+        Object id = claims.get("usuarioId");
+        if (id instanceof Number) return ((Number) id).longValue();
+        return id != null ? Long.valueOf(id.toString()) : null;
     }
 }
